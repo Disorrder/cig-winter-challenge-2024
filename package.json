@@ -1,12 +1,17 @@
 {
-	"name": "cig-winter-challenge-2024",
-	"module": "index.ts",
-	"type": "module",
-	"devDependencies": {
-		"@biomejs/biome": "1.9.4",
-		"@types/bun": "latest"
-	},
-	"peerDependencies": {
-		"typescript": "^5.7.2"
-	}
+  "name": "cig-winter-challenge-2024",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist",
+    "dev": "bun run build --watch",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.7.2"
+  }
 }

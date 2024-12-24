@@ -1,152 +1,81 @@
-/**
- * Grow and multiply your organisms to end up larger than your opponent.
- **/
+import type { Distance } from "./DistanceGraph";
+import { type Cell, GameMap } from "./map";
+import { parseGameState, parseInitialInput } from "./parser";
+import type { PlayerOwner } from "./types";
 
 // Game initialization
 const { width, height } = parseInitialInput();
+const gameMap = new GameMap(width, height);
 
 // game loop
 while (true) {
-  const state = getGameState();
-  const myOrgans = findMyOrgans(state);
+  const state = parseGameState();
+  gameMap.setEntities(state.entities);
 
-  // Read required actions count
-  const requiredActionsCount = Number(readline());
+  // Calculate distances from all important points
+  const distancesGraph = gameMap.getDistances();
+  distancesGraph.clear();
 
-  // Process each organ
-  for (let i = 0; i < requiredActionsCount; i++) {
-    const action = getAction(myOrgans[i], state);
-    console.log(action);
+  const roots = gameMap.findRoots();
+  const myOrgans = gameMap.findMyOrgans();
+  const resources = gameMap.findResources();
+  const allEntities = [...myOrgans, ...resources, ...roots];
+
+  for (const entity of allEntities) {
+    gameMap.calculateAllFrom(entity);
   }
-}
 
-/* PARSING */
+  const resourceDistances = sortResourcesByDistanceToOrgan(resources);
+  const closestResourceDistance = resourceDistances[0];
 
-function parseInitialInput(): { width: number; height: number } {
-  const [width, height] = readline().split(" ").map(Number.parseInt);
-  return { width, height };
-}
+  if (closestResourceDistance) {
+    const closestOrgan = gameMap.getCellById(closestResourceDistance.to);
+    const closestResource = gameMap.getCellById(closestResourceDistance.from);
+    const organId = closestOrgan?.entity?.organId;
 
-function parseEntity(): Entity {
-  const [x, y, type, owner, organId, organDir, organParentId, organRootId] =
-    readline().split(" ");
-
-  return {
-    x: Number(x),
-    y: Number(y),
-    type,
-    owner: Number(owner) as -1 | 0 | 1,
-    organId: Number(organId),
-    organDir,
-    organParentId: Number(organParentId),
-    organRootId: Number(organRootId),
-  } as Entity;
-}
-
-function parseResources() {
-  const [a, b, c, d] = readline().split(" ").map(Number.parseInt);
-  return { A: a, B: b, C: c, D: d };
-}
-
-/* STATE */
-
-function getGameState(): GameState {
-  const entityCount = Number(readline());
-  const entities = Array.from({ length: entityCount }, parseEntity);
-
-  const myResources = parseResources();
-  const oppResources = parseResources();
-
-  return {
-    entities,
-    myResources,
-    oppResources,
-  };
-}
-
-function findMyOrgans(state: GameState): Entity[] {
-  return state.entities.filter((e) => e.owner === 1 && e.organId > 0);
-}
-
-function findResources(state: GameState): Entity[] {
-  return state.entities.filter(
-    (e) => e.type === "A" || e.type === "B" || e.type === "C" || e.type === "D"
-  );
-}
-
-/* ACTIONS */
-
-function getAction(organ: Entity, state: GameState): string {
-  const resources = findResources(state);
-
-  // If we're a BASIC organ, try to grow towards resources
-  if (organ.type === "BASIC") {
-    const nearestResource = resources.sort(
-      (a, b) =>
-        Math.abs(a.x - organ.x) +
-        Math.abs(a.y - organ.y) -
-        (Math.abs(b.x - organ.x) + Math.abs(b.y - organ.y))
-    )[0];
-
-    if (nearestResource) {
-      // Determine growth direction
-      if (
-        Math.abs(nearestResource.x - organ.x) >
-        Math.abs(nearestResource.y - organ.y)
-      ) {
-        return nearestResource.x > organ.x ? "GROW E" : "GROW W";
-      }
-      return nearestResource.y > organ.y ? "GROW S" : "GROW N";
+    if (organId && closestResource) {
+      console.log(
+        `GROW ${organId} ${closestResource.x} ${closestResource.y} BASIC`
+      );
+      continue;
     }
   }
 
-  // If we have enough resources, create a BASIC organ
-  if (organ.type === "ROOT" && state.myResources.A >= 30) {
-    return "BIRTH BASIC";
+  console.log("WAIT");
+}
+
+/**
+ * @returns sorted distances to resources of the given owner, where `from` is always resource and `to` is the organ
+ */
+function sortResourcesByDistanceToOrgan(
+  resources: Cell[],
+  owner: PlayerOwner = 1
+): Distance[] {
+  const distancesGraph = gameMap.getDistances();
+  const distanceToResources: Distance[] = [];
+
+  for (const resource of resources) {
+    const [distance] = distancesGraph
+      .getAllFrom(resource.id)
+      .filter((distance) => {
+        const to = gameMap.getCellById(distance.to);
+        return to?.entity?.owner === owner;
+      })
+      .sort((a, b) => a.distance - b.distance);
+
+    if (distance) {
+      const to = gameMap.getCellById(distance.to);
+      if (!to) {
+        console.error(
+          `[ERR] Distance to my organ is not calculated for resource (${resource.x},${resource.y})`
+        );
+        continue;
+      }
+      distanceToResources.push(distance);
+    }
   }
 
-  return "WAIT";
-}
+  distanceToResources.sort((a, b) => a.distance - b.distance);
 
-/* TYPES, DON'T MOVE TO OTHER FILES */
-
-type Direction = "N" | "E" | "S" | "W" | "X";
-type EntityType =
-  | "WALL"
-  | "ROOT"
-  | "BASIC"
-  | "TENTACLE"
-  | "HARVESTER"
-  | "SPORER"
-  | "A"
-  | "B"
-  | "C"
-  | "D";
-type Owner = -1 | 0 | 1; // -1: neutral, 0: enemy, 1: mine
-
-interface Entity {
-  x: number;
-  y: number;
-  type: EntityType;
-  owner: Owner;
-  organId: number;
-  organDir: Direction;
-  organParentId: number;
-  organRootId: number;
-}
-
-interface GameState {
-  entities: Entity[];
-  myResources: {
-    A: number;
-    B: number;
-    C: number;
-    D: number;
-  };
-  oppResources: {
-    A: number;
-    B: number;
-    C: number;
-    D: number;
-  };
+  return distanceToResources;
 }
