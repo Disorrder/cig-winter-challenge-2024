@@ -1,9 +1,11 @@
-import { DistanceGraph } from "./DistanceGraph";
+import { GridPathfinder } from "./GridPathfinder";
+import { DIRECTIONS, DIRECTION_VECTORS, type Direction } from "./const";
 import type { Entity } from "./types";
 
 export class GameMap {
   private cells: Cell[];
-  private distances: DistanceGraph;
+  private pathfinder: GridPathfinder;
+  // readonly disabledIds = new Set<number>();
 
   constructor(readonly width: number, readonly height: number) {
     // Initialize empty grid as 1D array
@@ -15,13 +17,12 @@ export class GameMap {
       }
     }
 
-    // Initialize distances graph
-    this.distances = new DistanceGraph(width * height);
+    // Initialize pathfinder
+    this.pathfinder = new GridPathfinder(this);
   }
 
-  // Add getter for distances
-  getDistances(): DistanceGraph {
-    return this.distances;
+  getPathfinder(): GridPathfinder {
+    return this.pathfinder;
   }
 
   coordToIndex(x: number, y: number): number {
@@ -30,6 +31,10 @@ export class GameMap {
 
   indexToCoord(id: number): { x: number; y: number } {
     return { x: id % this.width, y: Math.floor(id / this.width) };
+  }
+
+  getCells(): Cell[] {
+    return this.cells;
   }
 
   getCell(x: number, y: number): Cell | null {
@@ -46,17 +51,44 @@ export class GameMap {
     return this.cells[id];
   }
 
+  getCellNeighbors(id: number): Cell[] {
+    const cell = this.getCellById(id)!;
+    const neighbors: Cell[] = [];
+    for (const { x: dx, y: dy } of DIRECTION_VECTORS) {
+      const neighbor = this.getCell(cell.x + dx, cell.y + dy);
+      if (neighbor) neighbors.push(neighbor);
+    }
+    return neighbors;
+  }
+
+  getManhattanDistance(from: Cell, to: Cell): number {
+    return Math.abs(from.x - to.x) + Math.abs(from.y - to.y);
+  }
+
+  /** Works for neighbours only */
+  getDirectionName(from: Cell, to: Cell): Direction | null {
+    if (from.id === to.id) return null;
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const index = DIRECTION_VECTORS.findIndex(
+      ({ x, y }) => x === dx && y === dy
+    );
+    return index !== -1 ? DIRECTIONS[index] : null;
+  }
+
   setEntities(entities: Entity[]): void {
     // Reset all cells
     for (let i = 0; i < this.cells.length; i++) {
       this.cells[i].entity = null;
     }
+    this.pathfinder.disabledIds.clear();
 
     // Update cells with new entities
     for (const entity of entities) {
       const cell = this.getCell(entity.x, entity.y);
       if (cell) {
         cell.entity = entity;
+        this.pathfinder.disabledIds.add(cell.id);
       }
     }
   }
@@ -73,36 +105,15 @@ export class GameMap {
     return this.cells.filter((cell) => cell.isMyOrgan());
   }
 
-  /** BFS from the source cell to all other cells, setting distances to -1 for unreachable cells */
-  calculateAllFrom(from: Cell): void {
-    const distances = this.getDistances();
-    const visited = new Set<number>();
-    const queue: Array<[Cell, number]> = [[from, 0]];
+  findEnemyOrgans(): Cell[] {
+    return this.cells.filter((cell) => cell.isEnemyOrgan());
+  }
 
-    visited.add(from.id);
-    distances.setDistance(from.id, from.id, 0);
-
-    while (queue.length > 0) {
-      const [current, distance] = queue.shift()!;
-
-      for (const neighbor of current.getNeighbors()) {
-        if (visited.has(neighbor.id)) continue;
-        visited.add(neighbor.id);
-
-        if (neighbor.isWall()) continue;
-        distances.setDistance(from.id, neighbor.id, distance + 1);
-
-        // Organs ain't walkable, but we can get close to them
-        if (neighbor.isMyOrgan() || neighbor.isEnemyOrgan()) continue;
-        queue.push([neighbor, distance + 1]);
-      }
-    }
-
-    for (const cell of this.cells) {
-      if (!visited.has(cell.id)) {
-        distances.setDistance(from.id, cell.id, -1);
-      }
-    }
+  isFacedTo(from: Cell, to: Cell): boolean {
+    const { entity } = from;
+    if (!entity) return false;
+    const direction = this.getDirectionName(from, to);
+    return entity.organDir === direction;
   }
 }
 
@@ -154,25 +165,6 @@ export class Cell {
 
   distanceTo(other: Cell): number {
     return Math.abs(this.x - other.x) + Math.abs(this.y - other.y);
-  }
-
-  getNeighbors(): Cell[] {
-    const neighbors: Cell[] = [];
-    const directions = [
-      { dx: 0, dy: -1 }, // North
-      { dx: 1, dy: 0 }, // East
-      { dx: 0, dy: 1 }, // South
-      { dx: -1, dy: 0 }, // West
-    ];
-
-    for (const { dx, dy } of directions) {
-      const neighbor = this.map.getCell(this.x + dx, this.y + dy);
-      if (!neighbor) continue;
-      if (neighbor.isWall()) continue;
-      neighbors.push(neighbor);
-    }
-
-    return neighbors;
   }
 
   toString(): string {

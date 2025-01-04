@@ -1,4 +1,4 @@
-import type { Entity, GameState } from "./types";
+import type { Entity, GameState, Resources } from "./types";
 
 export interface InitialInput {
   width: number;
@@ -28,9 +28,10 @@ function parseEntity(): Entity {
   } as Entity;
 }
 
-function parseResources() {
-  const [a, b, c, d] = readline().split(" ").map(Number.parseInt);
-  return { A: a, B: b, C: c, D: d };
+function parseResources(): Resources {
+  return readline()
+    .split(" ")
+    .map((str) => Number(str) || 0) as Resources;
 }
 
 export function parseGameState(): GameState {
