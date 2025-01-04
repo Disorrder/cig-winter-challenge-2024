@@ -6,9 +6,30 @@
 
 ## Congratulations
 
-Your organism can **grow**!
+Your organism can **harvest**!
 
-However, **protein sources** on the grid are limited, and once you absorb them, they are gone. This is where the `HARVESTER` type organ comes in.
+However, **your opponent** will sometimes be **in your way**. Give them a taste of your `TENTACLE` type organ.
+
+![TENTACLE organ example](https://static.codingame.com/servlet/fileservlet?id=132395883395976)
+_The TENTACLE organ._
+
+## TENTACLE Rules
+
+On each turn, right after **harvesting**, any `TENTACLE` organs facing an opponent organ will **attack**, causing the target organ to **die**. Attacks happen simultaneously.
+
+![TENTACLE direction example](https://static.codingame.com/servlet/fileservlet?id=132395781400673)
+_This command will create a new `TENTACLE` facing `E` (East), causing the opponent organ to be attacked._
+
+When an organ **dies**, all of its **children** also die. This will propagate to the **entire** organism if the `ROOT` is hit.
+
+_Note: You can use the `organParentId` variable to keep track of each organ's children._
+
+A tentacle also prevents the opponent from growing onto the tile it is facing.
+
+To grow a `TENTACLE` you need `1` `B` type protein and `1` `C` type protein.
+
+In this league, there are no **protein sources** but you start with a stock full of various proteins.
+**Use them to grow a large organism and attack the opponent's organism!**
 
 ## HARVESTER Rules
 
@@ -93,6 +114,7 @@ Next `entityCount` lines: the following `7` inputs for each entity:
   - `ROOT` for a ROOT type organ
   - `BASIC` for a BASIC type organ
   - `HARVESTER` for a HARVESTER type organ
+  - `TENTACLE` for a TENTACLE type organ
   - `A` for an A protein source
 - `owner`:
   - `1` if you are the owner of this organ
@@ -119,5 +141,4 @@ A single line with your action:
 >
 > The extra rules available in higher leagues are:
 >
-> - An organ type to attack your opponent
 > - An organ type to spawn more organisms
