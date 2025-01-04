@@ -1,10 +1,11 @@
-import { GridPathfinder } from "./GridPathfinder";
+import { type GridConnection, GridPathfinder } from "./GridPathfinder";
 import { DIRECTIONS, DIRECTION_VECTORS, type Direction } from "./const";
 import type { Entity } from "./types";
 
 export class GameMap {
   private cells: Cell[];
   private pathfinder: GridPathfinder;
+  private territories: TerritoryCell[];
   // readonly disabledIds = new Set<number>();
 
   constructor(readonly width: number, readonly height: number) {
@@ -19,6 +20,8 @@ export class GameMap {
 
     // Initialize pathfinder
     this.pathfinder = new GridPathfinder(this);
+    // Initialize territories
+    this.territories = new Array(this.width * this.height);
   }
 
   getPathfinder(): GridPathfinder {
@@ -115,6 +118,70 @@ export class GameMap {
     const direction = this.getDirectionName(from, to);
     return entity.organDir === direction;
   }
+
+  /* Territories (prolly need to move to separate class) */
+
+  indexTerritories() {
+    const pathfinder = this.getPathfinder();
+    const myOrgans = this.findMyOrgans();
+    const enemyOrgans = this.findEnemyOrgans();
+
+    const myOrgansIds = myOrgans.map((organ) => organ.id);
+    const enemyOrgansIds = enemyOrgans.map((organ) => organ.id);
+
+    for (let id = 0; id < this.territories.length; id++) {}
+
+    this.territories.length = 0;
+
+    this.cells.forEach((cell) => {
+      const { id } = cell;
+      if (cell.isOrgan()) return;
+      if (cell.isWall()) return;
+
+      const myConnection = pathfinder.getBestConnection(myOrgansIds, [id]);
+      const enemyConnection = pathfinder.getBestConnection(enemyOrgansIds, [
+        id,
+      ]);
+      const diff =
+        myConnection && enemyConnection
+          ? myConnection.distance - enemyConnection.distance
+          : null;
+      this.territories[id] = {
+        id,
+        myConnection,
+        enemyConnection,
+        diff,
+      };
+    });
+
+    this.territories = this.territories.filter(Boolean);
+  }
+
+  getTerritories(): TerritoryCell[] {
+    return this.territories;
+  }
+
+  setTerritory(terrCell: TerritoryCell): void {
+    this.territories[terrCell.id] = terrCell;
+  }
+
+  getNeutralTerritories(): TerritoryCell[] {
+    return this.territories.filter(
+      (terrCell) => terrCell.diff === 0 || terrCell.diff === 1
+    );
+  }
+
+  getMyTerritories(): TerritoryCell[] {
+    return this.territories.filter((terrCell) => {
+      if (terrCell.diff !== null && terrCell.diff < 0) return true;
+      if (terrCell.diff === null && terrCell.myConnection) return true;
+      return false;
+    });
+  }
+
+  getEnemyTerritories(): TerritoryCell[] {
+    return this.territories.filter((terrCell) => terrCell.diff === -1);
+  }
 }
 
 export class Cell {
@@ -151,12 +218,24 @@ export class Cell {
     return this.entity?.type === "ROOT";
   }
 
+  isHarvester(): boolean {
+    return this.entity?.type === "HARVESTER";
+  }
+
+  isTentacle(): boolean {
+    return this.entity?.type === "TENTACLE";
+  }
+
   isMyOrgan(): boolean {
     return this.entity?.owner === 1;
   }
 
   isEnemyOrgan(): boolean {
     return this.entity?.owner === 0;
+  }
+
+  isOrgan(): boolean {
+    return this.isMyOrgan() || this.isEnemyOrgan();
   }
 
   isWalkable(): boolean {
@@ -172,4 +251,11 @@ export class Cell {
     const entityString = [owner, this.entity?.type].filter(Boolean).join(" ");
     return `Cell<(${this.x},${this.y}), ${entityString}>`;
   }
+}
+
+export interface TerritoryCell {
+  id: number;
+  myConnection?: GridConnection;
+  enemyConnection?: GridConnection;
+  diff: number | null;
 }

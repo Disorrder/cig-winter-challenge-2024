@@ -86,11 +86,21 @@ export class GridPathfinder {
         return edge.toId === current;
       });
       if (!edge) {
-        console.error(`[ERR] Edge not found for id ${current}.`, path);
+        console.error(
+          `[ERR] getPath(${fromId}, ${toId}): Edge not found for id ${current}.`,
+          path
+        );
+        break;
+      }
+      if (!edge.prevId) {
+        console.error(
+          `[ERR] getPath(${fromId}, ${toId}): No prevId found for id ${current}.`,
+          path
+        );
         break;
       }
 
-      current = edge.prevId!;
+      current = edge.prevId;
     }
     path.push(fromId);
     return path.reverse();
@@ -158,6 +168,9 @@ export class GridPathfinder {
     let bestEdge: GridPathfinderEdge | null = null;
 
     for (const fromId of fromIds) {
+      if (!this.isIndexed(fromId)) {
+        this.indexDistancesFrom(this.map.getCellById(fromId)!);
+      }
       for (const toId of toIds) {
         const edge = this.getEdge(fromId, toId);
         if (!edge) continue;
