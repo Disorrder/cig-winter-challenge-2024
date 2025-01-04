@@ -13,6 +13,7 @@ export const HARVESTER_PROTEIN_GAIN = 1;
 export const ORGAN_COSTS = {
   BASIC: [1, 0, 0, 0] as Resources,
   HARVESTER: [0, 0, 1, 1] as Resources,
+  TENTACLE: [0, 1, 1, 0] as Resources,
 } as const;
 
 /** Possible organ types as enum-like object */
@@ -21,6 +22,7 @@ export const ORGAN_TYPES = {
   ROOT: "ROOT",
   BASIC: "BASIC",
   HARVESTER: "HARVESTER",
+  TENTACLE: "TENTACLE",
 } as const;
 
 /** Array of all organ types */
@@ -29,6 +31,7 @@ export const ORGAN_TYPES_ARRAY = [
   "ROOT",
   "BASIC",
   "HARVESTER",
+  "TENTACLE",
 ] as const;
 
 /** Array of all possible directions */
