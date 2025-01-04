@@ -90,7 +90,6 @@ export class GridPathfinder {
         break;
       }
 
-      console.error("🚀 ~ GridPathfinder ~ getPath ~ edge:", edge);
       current = edge.prevId!;
     }
     path.push(fromId);

@@ -18,7 +18,6 @@ while (true) {
 
   const state = parseGameState();
   const { entities, ...restState } = state;
-  console.error(JSON.stringify(restState, null, 2));
   gameMap.setEntities(state.entities);
 
   // Index distances from all important points
