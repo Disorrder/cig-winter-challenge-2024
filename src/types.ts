@@ -1,4 +1,5 @@
-export type Direction = "N" | "E" | "S" | "W" | "X";
+import type { Direction } from "./const";
+
 export type EntityType =
   | "WALL"
   | "ROOT"
@@ -26,19 +27,11 @@ export interface Entity {
   organRootId: number;
 }
 
+export type Resources = [number, number, number, number];
+
 export interface GameState {
   entities: Entity[];
-  myResources: {
-    A: number;
-    B: number;
-    C: number;
-    D: number;
-  };
-  oppResources: {
-    A: number;
-    B: number;
-    C: number;
-    D: number;
-  };
+  myResources: Resources;
+  oppResources: Resources;
   requiredActionsCount: number;
 }
