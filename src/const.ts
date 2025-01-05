@@ -14,6 +14,8 @@ export const ORGAN_COSTS = {
   BASIC: [1, 0, 0, 0] as Resources,
   HARVESTER: [0, 0, 1, 1] as Resources,
   TENTACLE: [0, 1, 1, 0] as Resources,
+  SPORER: [0, 1, 0, 1] as Resources,
+  ROOT: [1, 1, 1, 1] as Resources,
 } as const;
 
 /** Possible organ types as enum-like object */
@@ -23,16 +25,11 @@ export const ORGAN_TYPES = {
   BASIC: "BASIC",
   HARVESTER: "HARVESTER",
   TENTACLE: "TENTACLE",
+  SPORER: "SPORER",
 } as const;
 
-/** Array of all organ types */
-export const ORGAN_TYPES_ARRAY = [
-  "WALL",
-  "ROOT",
-  "BASIC",
-  "HARVESTER",
-  "TENTACLE",
-] as const;
+/** Array of all organ types inferred from ORGAN_TYPES */
+export const ORGAN_TYPES_ARRAY = Object.values(ORGAN_TYPES);
 
 /** Array of all possible directions */
 export const DIRECTIONS = ["E", "S", "W", "N"] as const;
