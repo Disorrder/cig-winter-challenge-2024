@@ -6,12 +6,47 @@
 
 ## Congratulations
 
-Your organism can **harvest**!
+Your organism can **fight**!
 
-However, **your opponent** will sometimes be **in your way**. Give them a taste of your `TENTACLE` type organ.
+However, your organism has been **alone** so far. But with the power of a `SPORER` type organ, you can grow entirely **new organisms**.
 
-![TENTACLE organ example](https://static.codingame.com/servlet/fileservlet?id=132395883395976)
-_The TENTACLE organ._
+![SPORER organ example](https://static.codingame.com/servlet/fileservlet?id=132396021519497)
+_The SPORER organ._
+
+## SPORER Rules
+
+The `SPORER` type organ is unique in two ways:
+
+- It is the only organ that can create a new `ROOT` organ.
+- To create a new `ROOT`, it shoots out a spore in a straight line, letting you place the new organ in any of the free spaces it is facing.
+
+_Note: a `ROOT` organ never has a **parent**, even when spawned from a `SPORER`._
+
+![SPORER direction example](https://static.codingame.com/servlet/fileservlet?id=132395742195955)
+_This command will make the `SPORER` shoot a new `ROOT` to the South._
+
+When you control **multiple** organisms, you must output one command for **each one**. They will perform their actions simultaneously.
+
+The `requiredActionsCount` variable will keep track of how many organisms you have. You **must** use the `WAIT` command for any organism that cannot act.
+
+_Note: You can use the `organRootId` variable to find out which organs belong to the same organism._
+
+To grow a `SPORER` you need `1` `B` type protein and `1` `D` type protein.
+To spore a new `ROOT` you need `1` of each protein.
+
+Here is a table to summarize all organ costs:
+
+| Organ     | A   | B   | C   | D   |
+| --------- | --- | --- | --- | --- |
+| BASIC     | 1   | 0   | 0   | 0   |
+| HARVESTER | 0   | 0   | 1   | 1   |
+| TENTACLE  | 0   | 1   | 1   | 0   |
+| SPORER    | 0   | 1   | 0   | 1   |
+| ROOT      | 1   | 1   | 1   | 1   |
+
+In this league, there is **one** protein source but your starting organism is not close enough to **harvest it**.
+
+**Use a sporer to shoot a new `ROOT` towards the protein and grow larger than your opponent!**
 
 ## TENTACLE Rules
 
@@ -133,9 +168,18 @@ Next line: the integer `requiredActionsCount` which equals `1` _in this league_.
 
 ### Output
 
-A single line with your action:
+A single line per organism with its action:
 
 - `GROW id x y type direction`: attempt to grow a new organ of type `type` at location `x`, `y` from organ with id `id`. If the target location is not a neighbour of `id`, the organ will be created on the shortest path to `x`, `y`.
+- `SPORE id x y`: attempt to create a new `ROOT` organ at location `x`, `y` from the `SPORER` with id `id`.
+- `WAIT`: do nothing.
+
+Append text to your command and it will be displayed in the viewer.
+
+### Constraints
+
+Response time per turn ≤ `50`ms
+Response time for the first turn ≤ `1000`ms
 
 > 🌱 **What is in store for me in the higher leagues?**
 >
