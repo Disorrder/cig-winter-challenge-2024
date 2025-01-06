@@ -16,7 +16,7 @@ export type NeutralOwner = -1;
 export type PlayerOwner = 0 | 1;
 export type EntityOwner = NeutralOwner | PlayerOwner;
 
-export interface Entity {
+export interface EntityData {
   x: number;
   y: number;
   type: EntityType;
@@ -30,7 +30,7 @@ export interface Entity {
 export type Resources = [number, number, number, number];
 
 export interface GameState {
-  entities: Entity[];
+  entities: EntityData[];
   myResources: Resources;
   oppResources: Resources;
   requiredActionsCount: number;

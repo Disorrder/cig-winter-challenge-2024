@@ -1,4 +1,4 @@
-import type { Entity, GameState, Resources } from "./types";
+import type { EntityData, GameState, Resources } from "./types";
 
 export interface InitialInput {
   width: number;
@@ -12,7 +12,7 @@ export function parseInitialInput(): InitialInput {
   return { width, height };
 }
 
-function parseEntity(): Entity {
+function parseEntity(): EntityData {
   const [x, y, type, owner, organId, organDir, organParentId, organRootId] =
     readline().split(" ");
 
@@ -25,7 +25,7 @@ function parseEntity(): Entity {
     organDir,
     organParentId: Number(organParentId),
     organRootId: Number(organRootId),
-  } as Entity;
+  } as EntityData;
 }
 
 function parseResources(): Resources {

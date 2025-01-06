@@ -1,6 +1,6 @@
 import { type GridConnection, GridPathfinder } from "./GridPathfinder";
 import { DIRECTIONS, DIRECTION_VECTORS, type Direction } from "./const";
-import type { Entity } from "./types";
+import type { EntityData } from "./types";
 
 export class GameMap {
   private cells: Cell[];
@@ -79,7 +79,7 @@ export class GameMap {
     return index !== -1 ? DIRECTIONS[index] : null;
   }
 
-  setEntities(entities: Entity[]): void {
+  setEntities(entities: EntityData[]): void {
     // Reset all cells
     for (let i = 0; i < this.cells.length; i++) {
       this.cells[i].entity = null;
@@ -186,7 +186,7 @@ export class GameMap {
 
 export class Cell {
   readonly id: number;
-  entity: Entity | null = null;
+  entity: EntityData | null = null;
 
   constructor(
     private readonly map: GameMap,
